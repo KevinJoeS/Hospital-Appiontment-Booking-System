@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Registration — Joe Medical Center</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { background-color: var(--dark-bg); }
+    .register-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-md);
+    }
+    .register-card {
+      width: 100%;
+      max-width: 450px;
+      background: var(--dark-surface);
+      border: 1px solid var(--dark-border);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg) var(--spacing-xl);
+      box-shadow: var(--shadow-xl);
+    }
+    .register-header { text-align: center; margin-bottom: var(--spacing-lg); }
+    .form-group { margin-bottom: var(--spacing-md); }
+    .form-group label { display: block; margin-bottom: var(--spacing-sm); font-weight: 600; font-size: 12px; text-transform: uppercase; color: var(--muted-text); }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--input-bg);
+      border: 1px solid var(--dark-border);
+      border-radius: var(--radius-md);
+      color: var(--light-text);
+      font-size: 14px;
+    }
+    .register-button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: var(--spacing-md);
+    }
+    .error-alert {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--danger);
+      padding: var(--spacing-md);
+      color: var(--danger);
+      margin-bottom: var(--spacing-lg);
+      font-size: 13px;
+      display: none;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <div class="register-container">
+    <div class="register-card">
+      <div class="register-header">
+        <h2><span style="color: var(--primary);">Patient</span> <span style="color: var(--success);">Registration</span></h2>
+        <p>Create your account and start booking appointments</p>
+      </div>
+
+      <div id="error-message" class="error-alert"></div>
+
+      <form id="reg-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" placeholder="John Doe" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="your@email.com" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Min 6 characters" required>
+          </div>
+          <div class="form-group">
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" placeholder="Re-enter password" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="gender">Gender</label>
+            <select id="gender" name="gender" required>
+              <option value="" disabled selected>Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" name="dob" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="age">Age</label>
+            <input type="number" id="age" name="age" placeholder="25" min="0" required>
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" placeholder="+1234567890" required>
+          </div>
+        </div>
+
+        <button type="submit" class="register-button">Create Account</button>
+      </form>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <p style="color: var(--muted-text); font-size: 14px;">Already have an account? <a href="/pat/login.html" style="color: var(--primary);">Sign In</a></p>
+        <a href="/" style="color: var(--muted-text); font-size: 13px;">← Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    const form = document.getElementById('reg-form');
+    const errorDiv = document.getElementById('error-message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorDiv.style.display = 'none';
+
+      if (form.password.value !== form.confirm_password.value) {
+        errorDiv.textContent = 'Passwords do not match';
+        errorDiv.style.display = 'block';
+        return;
+      }
+
+      const payload = {
+        name: form.name.value,
+        email: form.email.value,
+        password: form.password.value,
+        phone: form.phone.value,
+        gender: form.gender.value,
+        age: form.age.value,
+        dob: form.dob.value
+      };
+
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+          window.location.href = '/pat/dashboard.html';
+        } else {
+          errorDiv.textContent = data.message || 'Registration failed';
+          errorDiv.style.display = 'block';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'An error occurred. Please try again.';
+        errorDiv.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

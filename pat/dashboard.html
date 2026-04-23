@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Dashboard — Joe Medical Center</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-2xl); flex-wrap: wrap; gap: var(--spacing-lg); }
+    .welcome-message h1 { margin-bottom: var(--spacing-md); }
+    .welcome-message p { color: var(--muted-text); }
+    .header-actions { display: flex; gap: var(--spacing-md); flex-wrap: wrap; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-lg); margin-bottom: var(--spacing-2xl); }
+    .stat-card { background: white; border: 1px solid var(--dark-border); border-radius: var(--radius-lg); padding: var(--spacing-lg); text-align: center; }
+    .stat-number { font-size: 2.5rem; font-weight: 700; color: var(--primary); margin-bottom: var(--spacing-sm); }
+    .stat-label { color: var(--muted-text); font-size: 13px; text-transform: uppercase; }
+    .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-lg); margin-bottom: var(--spacing-2xl); }
+    .action-card { background: white; border: 1px solid var(--dark-border); border-radius: var(--radius-lg); padding: var(--spacing-lg); text-align: center; text-decoration: none; color: var(--light-text); display: flex; flex-direction: column; align-items: center; gap: var(--spacing-md); }
+    .action-card:hover { border-color: var(--primary); background: rgba(14, 165, 233, 0.05); }
+    .no-data { text-align: center; padding: var(--spacing-2xl); color: var(--muted-text); }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="navbar-brand"><span>Joe</span> Medical Center</a>
+      <div class="navbar-nav">
+        <button id="logout-btn" class="btn btn-danger btn-sm">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container" style="padding-top: var(--spacing-xl); padding-bottom: var(--spacing-xl);">
+    <div class="dashboard-header">
+      <div class="welcome-message">
+        <h1>Welcome, <span id="user-name" style="color: var(--primary);">Patient</span></h1>
+        <p>Manage your appointments and health records</p>
+      </div>
+      <div class="header-actions">
+        <a href="/pat/book-appointment.html" class="btn btn-primary">+ Book Appointment</a>
+        <a href="/pat/appointments.html" class="btn btn-secondary">View My Appointments</a>
+      </div>
+    </div>
+
+    <div id="stats-container" class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number" id="pending-count">0</div>
+        <div class="stat-label">Pending Approval</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="upcoming-count">0</div>
+        <div class="stat-label">Upcoming Appointments</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="completed-count">0</div>
+        <div class="stat-label">Completed Visits</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="total-count">0</div>
+        <div class="stat-label">Total Appointments</div>
+      </div>
+    </div>
+
+    <h2 style="margin-bottom: var(--spacing-xl);">Quick Actions</h2>
+    <div class="quick-actions">
+      <a href="/pat/book-appointment.html" class="action-card">
+        <div class="action-title">Book Appointment</div>
+        <div class="action-description">Schedule with available doctors</div>
+      </a>
+      <a href="/pat/appointments.html" class="action-card">
+        <div class="action-title">My Appointments</div>
+        <div class="action-description">View all your appointments</div>
+      </a>
+      <a href="/pat/profile.html" class="action-card">
+        <div class="action-title">My Profile</div>
+        <div class="action-description">Manage your information</div>
+      </a>
+      <a href="/pat/patient-record.html" class="action-card">
+        <div class="action-title">Patient Record</div>
+        <div class="action-description">View your personal record</div>
+      </a>
+    </div>
+  </div>
+
+  <script type="module">
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user) {
+        window.location.href = '/pat/login.html';
+        return;
+      }
+
+      document.getElementById('user-name').textContent = user.name;
+
+      try {
+        const response = await fetch(`/api/patient-dashboard?userId=${user.id}`);
+        const data = await response.json();
+
+        if (data.success) {
+          document.getElementById('pending-count').textContent = data.stats.pending;
+          document.getElementById('upcoming-count').textContent = data.stats.upcoming;
+          document.getElementById('completed-count').textContent = data.stats.completed;
+          document.getElementById('total-count').textContent = data.stats.total;
+        }
+      } catch (err) {
+        console.error('Failed to fetch dashboard stats:', err);
+      }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.removeItem('user');
+      window.location.href = '/';
+    });
+  </script>
+</body>
+</html>

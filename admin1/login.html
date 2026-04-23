@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — Joe Medical Center</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { background-color: var(--dark-bg); }
+    .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: var(--spacing-lg); }
+    .login-card { width: 100%; max-width: 400px; background: var(--dark-surface); border: 1px solid var(--dark-border); border-radius: var(--radius-lg); padding: var(--spacing-xl); box-shadow: var(--shadow-xl); }
+    .login-header { text-align: center; margin-bottom: var(--spacing-xl); }
+    .form-group { margin-bottom: var(--spacing-lg); }
+    .form-group label { display: block; margin-bottom: var(--spacing-sm); font-weight: 600; font-size: 12px; text-transform: uppercase; color: var(--muted-text); }
+    .form-group input { width: 100%; padding: 12px 14px; background: var(--input-bg); border: 1px solid var(--dark-border); border-radius: var(--radius-md); color: var(--light-text); font-size: 14px; }
+    .login-button { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--warning), #d97706); color: white; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; }
+    .error-alert { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); padding: var(--spacing-md); color: var(--danger); margin-bottom: var(--spacing-lg); font-size: 13px; display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <h2><span style="color: var(--primary);">Admin</span> <span style="color: var(--warning);">Login</span></h2>
+      </div>
+
+      <div id="error-message" class="error-alert"></div>
+
+      <form id="admin-login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" placeholder="Enter admin username" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Enter admin password" required>
+        </div>
+
+        <button type="submit" class="login-button">Sign In</button>
+      </form>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="/" style="color: var(--muted-text); font-size: 13px;">← Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    const form = document.getElementById('admin-login-form');
+    const errorDiv = document.getElementById('error-message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorDiv.style.display = 'none';
+
+      const payload = {
+        username: form.username.value,
+        password: form.password.value,
+        type: 'admin'
+      };
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+          window.location.href = '/admin1/dashboard.html';
+        } else {
+          errorDiv.textContent = data.message || 'Login failed';
+          errorDiv.style.display = 'block';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'An error occurred. Please try again.';
+        errorDiv.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>
